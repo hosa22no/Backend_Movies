@@ -1,0 +1,6 @@
+@MR_dw2_HostAddress = http://localhost:5258
+
+GET {{MR_dw2_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
