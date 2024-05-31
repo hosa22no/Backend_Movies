@@ -1,80 +1,92 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MR_dw2.Data;
+using Microsoft.EntityFrameworkCore;
 using MR_dw2.Models;
+using MR_dw2.Data;
+using System.Threading.Tasks;
+using MR_dw2.Models.NewFolder;
 
-namespace MR_dw2.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class ReviewController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ReviewController : ControllerBase
+    private readonly ApplicationDbContext db;
+
+    public ReviewController(ApplicationDbContext db)
     {
-        private readonly ApplicationDbContext db;
+        this.db = db;
+    }
 
-        public ReviewController(ApplicationDbContext db)
+    [HttpPost]
+    public async Task<ActionResult<Review>> PostReview(ReviewDTO reviewDto)
+    {
+        if (!ModelState.IsValid)
         {
-            this.db = db;
+            return BadRequest(ModelState);
         }
 
-        // GET: api/Review
-        [HttpGet]
-        public IActionResult GetReviews()
+        var review = new Review
         {
-            return Ok(db.Reviews.ToList());
+            Rating = reviewDto.Rating,
+            Comment = reviewDto.Comment,
+            MovieId = reviewDto.MovieId
+        };
+
+        db.Reviews.Add(review);
+        await db.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
+    }
+
+
+    // GET: api/reviews/{id}
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Review>> GetReview(int id)
+    {
+        var review = await db.Reviews.FindAsync(id);
+
+        if (review == null)
+        {
+            return NotFound();
         }
 
-        // GET: api/Review/{id}
-        [HttpGet("{id}")]
-        public IActionResult GetReviewById(int id)
+        return review;
+    }
+
+    // PUT: api/Review/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateReview(int id, [FromBody] Review updatedReview)
+    {
+        if (!ModelState.IsValid)
         {
-            var review = db.Reviews.FirstOrDefault(r => r.MovieId == id);
-            if (review == null)
-            {
-                return NotFound();
-            }
-            return Ok(review);
+            return BadRequest(ModelState);
         }
 
-        // POST: api/Review
-        [HttpPost]
-        public IActionResult CreateReview([FromBody] Review review)
+        var review = await db.Reviews.FirstOrDefaultAsync(r => r.Id == id);
+        if (review == null)
         {
-            db.Reviews.Add(review);
-            db.SaveChanges();
-
-            return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, review);
+            return NotFound();
         }
 
-        // PUT: api/Review/{id}
-        [HttpPut("{id}")]
-        public IActionResult UpdateReview(int id, [FromBody] Review updatedReview)
+        // Update the review
+        db.Entry(review).CurrentValues.SetValues(updatedReview);
+        await db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // DELETE: api/Review/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteReview(int id)
+    {
+        var review = await db.Reviews.FirstOrDefaultAsync(r => r.Id == id);
+        if (review == null)
         {
-            var review = db.Reviews.FirstOrDefault(r => r.MovieId == id);
-            if (review == null)
-            {
-                return NotFound();
-            }
-
-            // Update the review
-            db.Entry(review).CurrentValues.SetValues(updatedReview);
-            db.SaveChanges();
-
-            return NoContent();
+            return NotFound();
         }
 
-        // DELETE: api/Review/{id}
-        [HttpDelete("{id}")]
-        public IActionResult DeleteReview(int id)
-        {
-            var review = db.Reviews.FirstOrDefault(r => r.MovieId == id);
-            if (review == null)
-            {
-                return NotFound();
-            }
+        db.Reviews.Remove(review);
+        await db.SaveChangesAsync();
 
-            db.Reviews.Remove(review);
-            db.SaveChanges();
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }

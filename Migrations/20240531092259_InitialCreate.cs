@@ -2,12 +2,10 @@
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace MR_dw2.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -46,17 +44,6 @@ namespace MR_dw2.Migrations
                         principalTable: "Movies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.InsertData(
-                table: "Movies",
-                columns: new[] { "Id", "Description", "ReleaseYear", "Title" },
-                values: new object[,]
-                {
-                    { 1, "Cool movie from the 90s", 1994, "The Shawshank Redemption" },
-                    { 2, "Classic crime film", 1972, "The Godfather" },
-                    { 3, "Quentin Tarantino masterpiece", 1994, "Pulp Fiction" },
-                    { 4, "Epic superhero film", 2008, "The Dark Knight" }
                 });
 
             migrationBuilder.CreateIndex(

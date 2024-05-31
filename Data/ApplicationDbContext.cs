@@ -17,13 +17,15 @@ namespace MR_dw2.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Movies>().HasData(
-                new Movies { Id = 1, Title = "The Shawshank Redemption", ReleaseYear = 1994, Description = "Cool movie from the 90s" },
-                new Movies { Id = 2, Title = "The Godfather", ReleaseYear = 1972, Description = "Classic crime film" },
-                new Movies { Id = 3, Title = "Pulp Fiction", ReleaseYear = 1994, Description = "Quentin Tarantino masterpiece" },
-                new Movies { Id = 4, Title = "The Dark Knight", ReleaseYear = 2008, Description = "Epic superhero film" }
-            );
+           
 
+            // Configure the relationship between Movies and Reviews
+            modelBuilder.Entity<Movies>()
+               .HasMany(m => m.Reviews) 
+               .WithOne(r => r.Movie) 
+               .HasForeignKey(r => r.MovieId); 
         }
+
+    
     }
 }
