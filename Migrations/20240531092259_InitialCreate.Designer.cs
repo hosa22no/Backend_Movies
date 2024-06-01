@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MR_dw2.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240530101701_Init")]
-    partial class Init
+    [Migration("20240531092259_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,36 +44,6 @@ namespace MR_dw2.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Movies");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Cool movie from the 90s",
-                            ReleaseYear = 1994,
-                            Title = "The Shawshank Redemption"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Classic crime film",
-                            ReleaseYear = 1972,
-                            Title = "The Godfather"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Quentin Tarantino masterpiece",
-                            ReleaseYear = 1994,
-                            Title = "Pulp Fiction"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Description = "Epic superhero film",
-                            ReleaseYear = 2008,
-                            Title = "The Dark Knight"
-                        });
                 });
 
             modelBuilder.Entity("MR_dw2.Models.Review", b =>

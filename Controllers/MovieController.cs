@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MR_dw2.Data;
 using MR_dw2.Models;
 
@@ -6,7 +8,7 @@ namespace MR_dw2.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class MovieController : Controller
+    public class MovieController : ControllerBase
     {
         // Inject the ApplicationDbContext into the controller
         private readonly ApplicationDbContext db;
@@ -17,39 +19,58 @@ namespace MR_dw2.Controllers
             this.db = db;
         }
 
-        // Get all movies from the database
-        [HttpGet]
-        public IActionResult GetMovies()
+        // Get all movies from the database, including their reviews
+        [HttpGet, Authorize]
+        public async Task<IActionResult> GetMovies()
         {
-            return Ok(db.Movies.ToList());
+            var movies = await db.Movies
+                               //.Include(m => m.Reviews) 
+                               .ToListAsync();
+            return Ok(movies);
         }
-        // Get a movie by id
+
+        // Get a movie by id, including its reviews
         [HttpGet("{id}")]
-        public IActionResult GetMovieById(int id)
+        public async Task<IActionResult> GetMovieById(int id)
         {
-            var movie = db.Movies.FirstOrDefault(m => m.Id == id);
+            var movie = await db.Movies
+                            // .Include(m => m.Reviews) Crashes the app
+                             .FirstOrDefaultAsync(m => m.Id == id);
+
             if (movie == null)
             {
                 return NotFound();
             }
+
             return Ok(movie);
         }
 
+
         // Create a new movie
         [HttpPost]
-        public IActionResult CreateMovie([FromBody] Movies movie)
+        public async Task<IActionResult> CreateMovie([FromBody] Movies movie)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             db.Movies.Add(movie);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetMovieById), new { id = movie.Id }, movie);
         }
 
-        //Update a movie by id
+        // Update a movie by id
         [HttpPut("{id}")]
-        public IActionResult UpdateMovie(int id, [FromBody] Movies updatedMovie)
+        public async Task<IActionResult> UpdateMovie(int id, [FromBody] Movies updatedMovie)
         {
-            var movie = db.Movies.FirstOrDefault(m => m.Id == id);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var movie = await db.Movies.FirstOrDefaultAsync(m => m.Id == id);
             if (movie == null)
             {
                 return NotFound();
@@ -59,27 +80,25 @@ namespace MR_dw2.Controllers
             movie.ReleaseYear = updatedMovie.ReleaseYear;
             movie.Description = updatedMovie.Description;
 
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             return Ok(movie);
         }
 
-       // Delete a movie by id
+        // Delete a movie by id
         [HttpDelete("{id}")]
-        public IActionResult DeleteMovie(int id)
+        public async Task<IActionResult> DeleteMovie(int id)
         {
-            var movie = db.Movies.FirstOrDefault(m => m.Id == id);
+            var movie = await db.Movies.FirstOrDefaultAsync(m => m.Id == id);
             if (movie == null)
             {
                 return NotFound();
             }
 
             db.Movies.Remove(movie);
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             return NoContent();
         }
     }
-} 
-
-
+}
