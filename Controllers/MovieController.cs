@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MR_dw2.Data;
 using MR_dw2.Models;
@@ -19,7 +20,7 @@ namespace MR_dw2.Controllers
         }
 
         // Get all movies from the database, including their reviews
-        [HttpGet]
+        [HttpGet, Authorize]
         public async Task<IActionResult> GetMovies()
         {
             var movies = await db.Movies
