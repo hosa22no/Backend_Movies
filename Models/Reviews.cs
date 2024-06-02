@@ -12,8 +12,13 @@ namespace MR_dw2.Models
         // Foreign key to create a connection to the Movies table
         [ForeignKey("Movie")]
         public int MovieId { get; set; }
-        public Movies Movie { get; set; }
-        
+        public Movies? Movie { get; set; }
+
+        public string? UserId { get; set; } // Connecting a user to a review
+        public User? User { get; set; }
+
 
     }
+
+  
 }
