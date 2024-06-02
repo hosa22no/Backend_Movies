@@ -19,7 +19,7 @@ namespace MR_dw2.Controllers
             this.db = db;
         }
 
-        // Get all movies from the database, including their reviews
+        // Get all movies from the database
         [HttpGet, Authorize]
         public async Task<IActionResult> GetMovies()
         {
@@ -29,7 +29,7 @@ namespace MR_dw2.Controllers
             return Ok(movies);
         }
 
-        // Get a movie by id, including its reviews
+        // Get a movie by id
         [HttpGet("{id}")]
         public async Task<IActionResult> GetMovieById(int id)
         {
