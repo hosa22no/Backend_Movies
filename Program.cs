@@ -43,6 +43,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Enable CORS to be able to call the API from a different domain
+app.UseCors(builder => builder
+   .AllowAnyOrigin()
+   .AllowAnyMethod()
+   .AllowAnyHeader());
+
 // Adding auth
 app.MapIdentityApi<IdentityUser>();
 app.UseHttpsRedirection();

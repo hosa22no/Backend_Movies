@@ -20,11 +20,11 @@ namespace MR_dw2.Controllers
         }
 
         // Get all movies from the database
-        [HttpGet, Authorize]
+        [HttpGet]
         public async Task<IActionResult> GetMovies()
         {
             var movies = await db.Movies
-                               //.Include(m => m.Reviews) 
+                             
                                .ToListAsync();
             return Ok(movies);
         }
@@ -34,7 +34,7 @@ namespace MR_dw2.Controllers
         public async Task<IActionResult> GetMovieById(int id)
         {
             var movie = await db.Movies
-                            // .Include(m => m.Reviews) Crashes the app
+                           
                              .FirstOrDefaultAsync(m => m.Id == id);
 
             if (movie == null)
@@ -47,7 +47,7 @@ namespace MR_dw2.Controllers
 
 
         // Create a new movie
-        [HttpPost]
+        [HttpPost, Authorize]
         public async Task<IActionResult> CreateMovie([FromBody] Movies movie)
         {
             if (!ModelState.IsValid)
@@ -62,7 +62,7 @@ namespace MR_dw2.Controllers
         }
 
         // Update a movie by id
-        [HttpPut("{id}")]
+        [HttpPut("{id}"), Authorize]
         public async Task<IActionResult> UpdateMovie(int id, [FromBody] Movies updatedMovie)
         {
             if (!ModelState.IsValid)
@@ -86,7 +86,8 @@ namespace MR_dw2.Controllers
         }
 
         // Delete a movie by id
-        [HttpDelete("{id}")]
+
+        [HttpDelete("{id}"), Authorize]
         public async Task<IActionResult> DeleteMovie(int id)
         {
             var movie = await db.Movies.FirstOrDefaultAsync(m => m.Id == id);

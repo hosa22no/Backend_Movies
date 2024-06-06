@@ -20,3 +20,4 @@
 Utöver CRUD operationer ska API:et även implementera följande operationer
 - Hämta alla recensioner för en film
 - Hämta alla recensioner skapade av den inloggade användaren
+
