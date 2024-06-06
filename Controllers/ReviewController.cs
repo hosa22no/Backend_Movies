@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 
 [ApiController]
 [Route("api/[controller]")]
+
 public class ReviewController : ControllerBase
 {
     private readonly ApplicationDbContext db;
@@ -21,6 +22,7 @@ public class ReviewController : ControllerBase
 
     // Create a review by a logged in user
     // POST: api/reviews
+
     [HttpPost, Authorize]
     public async Task<ActionResult<Review>> PostReview(ReviewDTO reviewDto)
     {
@@ -44,6 +46,19 @@ public class ReviewController : ControllerBase
         return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
     }
 
+    // GET: api/reviews
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Review>>> GetAllReviews()
+    {
+        var reviews = await db.Reviews.ToListAsync();
+
+        if (reviews == null || !reviews.Any())
+        {
+            return NotFound(new { Message = "Inga recensioner hittades." });
+        }
+
+        return Ok(reviews);
+    }
 
     // GET: api/reviews/{id}
     [HttpGet("{id}")]
@@ -60,22 +75,32 @@ public class ReviewController : ControllerBase
     }
 
     // PUT: api/Review/{id}
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateReview(int id, [FromBody] Review updatedReview)
+    [HttpPut("{id}"), Authorize]
+    
+    public async Task<IActionResult> UpdateReview(int id, [FromBody] ReviewDTO reviewDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var review = await db.Reviews.FirstOrDefaultAsync(r => r.Id == id);
+        var review = await db.Reviews.FirstOrDefaultAsync(r => r.Id == id && r.UserId == User.FindFirstValue(ClaimTypes.NameIdentifier));
         if (review == null)
         {
             return NotFound();
         }
 
-        // Update the review
-        db.Entry(review).CurrentValues.SetValues(updatedReview);
+        // Ensure that the user updating the review is the one who created it
+        if (review.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+        {
+            return Unauthorized();
+        }
+
+        // Update the review with the values from the DTO
+        review.Rating = reviewDto.Rating;
+        review.Comment = reviewDto.Comment;
+        review.MovieId = reviewDto.MovieId;
+
         await db.SaveChangesAsync();
 
         return NoContent();
@@ -117,37 +142,37 @@ public class ReviewController : ControllerBase
         return Ok(reviews);
     }
 
-    //Get all reviews by a specific user
+    //Get all reviews by the logged in user
     // GET: api/reviews/user/{userId}
-    [HttpGet("myreviews")]
-    [Authorize] // Säkerställer att endast autentiserade användare kan hämta sina recensioner
+    [HttpGet("myreviews"), Authorize]
+    
     public async Task<IActionResult> GetMyReviews()
     {
-        // Hämta den inloggade användarens ID
+        // Get the user id
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Hämta alla recensioner kopplade till användaren och inkludera filmdata
+        // Get all reviews by the user
         var reviews = await db.Reviews
             .Where(r => r.UserId == userId)
-            .Include(r => r.Movie) // Inkludera filmdata
+            .Include(r => r.Movie) 
             .Select(r => new ReviewDTO
             {
                 Rating = r.Rating,
                 Comment = r.Comment,
                 MovieId = r.MovieId,
-                MovieTitle = r.Movie.Title // Förutsatt att din Movie-entitet har en Title-egenskap
+                MovieTitle = r.Movie.Title
             })
             .ToListAsync();
 
-        // Kontrollera om det finns några recensioner
+        // Check if the user has written any reviews
         if (reviews.Any())
         {
-            // Returnera recensionerna
+
             return Ok(reviews);
         }
         else
         {
-            // Returnera ett meddelande om användaren inte har skrivit några recensioner
+            // Returns a message if the user has not written any reviews
             return Ok(new { Message = "Du har inte skrivit några recensioner än." });
         }
     }
